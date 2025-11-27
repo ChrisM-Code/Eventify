@@ -11,13 +11,13 @@ export const lightTheme = {
 };
 
 export const darkTheme = {
-  body: "rgba(10, 10, 10, 0.85)",
-  text: "#f5f5f5",
-  headerBg: "rgba(20, 20, 20, 0.7)",
-  sidebarBg: "rgba(25, 25, 25, 0.6)",
-  mainBg: "rgba(15, 15, 15, 0.45)",
-  shadow: "rgba(255,255,255,0.08)",
-  border: "rgba(0,255,255,0.4)",
+  body: "#132033",
+  text: "#f4f7ff",
+  headerBg: "rgba(19, 32, 51, 0.96)",
+  sidebarBg: "rgba(17, 29, 46, 0.78)",
+  mainBg: "rgba(15, 26, 40, 0.55)",
+  shadow: "rgba(0, 0, 0, 0.45)",
+  border: "rgba(255, 150, 80, 0.25)", // Soft orange border
   glass: "rgba(255, 255, 255, 0.05)",
-  neon: "0 0 8px rgba(0, 255, 255, 0.7), 0 0 16px rgba(0, 255, 255, 0.4)",
+  neon: "0 0 6px rgba(255, 150, 80, 0.55)", // Orange accent glow
 };
