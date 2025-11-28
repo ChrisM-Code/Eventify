@@ -1,54 +1,85 @@
 import styled from "styled-components";
 
-const MenuContainer = styled.div`
-  padding: 20px;
+const MenuWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 10px;
+
+  /* Align the whole grid to the right visually */
+  justify-content: end;
+`;
+
+const MenuCard = styled.div`
+  padding: 10px;
   background: ${({ theme }) => theme.glass};
   border-radius: 14px;
   box-shadow: 0 0 10px ${({ theme }) => theme.shadow};
   backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: 0.25s ease;
 
-  h2 {
-    font-size: 22px;
+  h3 {
+    font-size: 20px;
     font-weight: bold;
     color: ${({ theme }) => theme.text};
-    margin-bottom: 15px;
+    margin-bottom: 8px;
   }
 
-  ul {
-    padding-left: 15px;
-  }
-
-  li {
-    padding: 10px;
-    list-style: none;
-    background: ${({ theme }) => theme.headerBg};
+  p {
     color: ${({ theme }) => theme.text};
-    margin-bottom: 10px;
-    border-radius: 10px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s ease;
+    opacity: 0.85;
+  }
 
-    &:hover {
-      filter: brightness(1.1);
-      box-shadow: ${({ theme }) => theme.neon};
-      transform: translateX(5px);
-    }
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: ${({ theme }) => theme.neon};
+    filter: brightness(1.05);
   }
 `;
 
 function Menu() {
   return (
-    <MenuContainer>
-      <h2>Menu</h2>
-      <ul>
-        <li>Events</li>
-        <li>Analysis</li>
-        <li>Messages</li>
-        <li>Settings</li>
-      </ul>
-    </MenuContainer>
+    <MenuWrapper>
+      <MenuCard>
+        <h3>Events</h3>
+        <p>View and manage all platform events</p>
+      </MenuCard>
+
+      <MenuCard>
+        <h3>Analysis</h3>
+        <p>Track performance and insights</p>
+      </MenuCard>
+
+      <MenuCard>
+        <h3>Settings</h3>
+        <p>Configure system preferences</p>
+      </MenuCard>
+
+      <MenuCard>
+        <h3>Create Event</h3>
+        <p>Create your event</p>
+      </MenuCard>
+
+      <MenuCard>
+        <h3>Upcoming Events</h3>
+        <p>What event to expect</p>
+      </MenuCard>
+
+      <MenuCard>
+        <h3>Past Events</h3>
+        <p>Past event details</p>
+      </MenuCard>
+
+      <MenuCard>
+        <h3>Event Calender</h3>
+        <p>View the dates of an event</p>
+      </MenuCard>
+    </MenuWrapper>
   );
 }
 
 export default Menu;
+
+//✨ Add icons for each card/
+//✨ Add card animations (fade-in, slide-up)/
+//✨ Make each card link to a page (React Router support)/

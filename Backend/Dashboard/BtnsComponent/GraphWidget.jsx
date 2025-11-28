@@ -1,7 +1,7 @@
 function GraphWidget() {
   return (
     <div>
-      <p>Graph Widget</p>
+      <p>Here we go...</p>
     </div>
   );
 }
