@@ -46,6 +46,7 @@ function SideBar({ setActivePage }) {
     if (section === "quickaction") setActivePage("quickaction");
     if (section === "events") setActivePage("events");
     if (section === "graph") setActivePage("graph");
+    if (section === "trashbin") setActivePage("trashbin");
 
     if (section === "maindash") setActivePage("dashboard");
   };
@@ -76,6 +77,10 @@ function SideBar({ setActivePage }) {
 
       <SectionButton onClick={() => toggleSection("graph")}>
         Graph Widget
+      </SectionButton>
+
+      <SectionButton onClick={() => toggleSection("trashbin")}>
+        Trash Bin
       </SectionButton>
     </SidebarWrapper>
   );

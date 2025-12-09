@@ -1,5 +1,6 @@
 import styled, { ThemeProvider } from "styled-components";
 import { useState } from "react";
+import { EventStoreProvider } from "../Dashboard/Store/EventStoreContext";
 
 import Header from "./Header";
 import SideBar from "./SideBar";
@@ -11,37 +12,17 @@ import GraphWidget from "./BtnsComponent/GraphWidget";
 import Notification from "./BtnsComponent/Notification";
 import QuickAction from "./BtnsComponent/QuickAction";
 import UpcomingEvents from "./BtnsComponent/UpcomingEvents";
+import TrashBin from "./BtnsComponent/TrashBin";
 
 import { lightTheme, darkTheme } from "./Themes/Theme";
 
+// ================= LAYOUT =================
 const DashboardWrapper = styled.div`
   height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
   background: ${(p) => p.theme.body};
-  position: relative;
-`;
-
-const DarkModeButton = styled.button`
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-
-  padding: 10px 16px;
-  border-radius: 8px;
-  border: none;
-  cursor: pointer;
-
-  background: ${(p) => p.theme.headerBg};
-  color: ${(p) => p.theme.text};
-  box-shadow: 0 2px 6px ${(p) => p.theme.shadow};
-
-  transition: 0.3s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
 `;
 
 const ContentWrapper = styled.div`
@@ -54,7 +35,6 @@ const SidebarContainer = styled.div`
   width: 260px;
   background: ${(p) => p.theme.sidebarBg};
   border-right: 1px solid ${(p) => p.theme.border};
-  overflow-y: auto;
 `;
 
 const MainContent = styled.main`
@@ -65,40 +45,57 @@ const MainContent = styled.main`
   overflow-y: auto;
 `;
 
-function AppDash() {
+const DarkModeButton = styled.button`
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: ${(p) => p.theme.headerBg};
+  color: ${(p) => p.theme.text};
+  border: none;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 2px 6px ${(p) => p.theme.shadow};
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+export default function AppDash() {
   const [darkMode, setDarkMode] = useState(false);
   const [activePage, setActivePage] = useState("dashboard");
 
   return (
-    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
-      <DashboardWrapper>
-        <Header />
+    <EventStoreProvider>
+      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+        <DashboardWrapper>
+          <Header />
 
-        {/* Floating Dark Mode Toggle */}
-        <DarkModeButton onClick={() => setDarkMode(!darkMode)}>
-          {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
-        </DarkModeButton>
+          <DarkModeButton onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+          </DarkModeButton>
 
-        <ContentWrapper>
-          <SidebarContainer>
-            <SideBar setActivePage={setActivePage} />
-          </SidebarContainer>
+          <ContentWrapper>
+            <SidebarContainer>
+              <SideBar setActivePage={setActivePage} />
+            </SidebarContainer>
 
-          <MainContent>
-            {activePage === "dashboard" && <MainDash />}
-            {activePage === "menu" && <Menu />}
-            {activePage === "filters" && <Filters />}
-            {activePage === "notification" && <Notification />}
-            {activePage === "graph" && <GraphWidget />}
-            {activePage === "quickaction" && <QuickAction />}
-            {activePage === "events" && <UpcomingEvents />}
-          </MainContent>
-        </ContentWrapper>
+            <MainContent>
+              {activePage === "dashboard" && <MainDash />}
+              {activePage === "menu" && <Menu />}
+              {activePage === "filters" && <Filters />}
+              {activePage === "notification" && <Notification />}
+              {activePage === "graph" && <GraphWidget />}
+              {activePage === "quickaction" && <QuickAction />}
+              {activePage === "events" && <UpcomingEvents />}
+              {activePage === "trashbin" && <TrashBin />}
+            </MainContent>
+          </ContentWrapper>
 
-        <Footer />
-      </DashboardWrapper>
-    </ThemeProvider>
+          <Footer />
+        </DashboardWrapper>
+      </ThemeProvider>
+    </EventStoreProvider>
   );
 }
-
-export default AppDash;
