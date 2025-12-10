@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import styled from "styled-components";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import { useTheme } from "styled-components";
 
 import { useEventStore } from "../Store/EventStoreContext";
 import { eventTemplate } from "../Data/eventTemplate";
@@ -10,8 +11,9 @@ import { eventTemplate } from "../Data/eventTemplate";
 const Wrapper = styled.div`
   width: 100%;
   padding: 20px;
-  box-sizing: border-box;
   color: ${({ theme }) => theme.text};
+  background: ${({ theme }) => theme.mainBg};
+  box-sizing: border-box;
 
   @media (max-width: 900px) {
     padding: 12px;
@@ -31,9 +33,10 @@ const Grid = styled.div`
 const Card = styled.div`
   background: ${({ theme }) => theme.glass};
   border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 6px 18px ${({ theme }) => theme.shadow};
+  box-shadow: 0 6px 16px ${({ theme }) => theme.shadow};
   padding: 18px;
-  border-radius: 12px;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
 `;
 
 const Row = styled.div`
@@ -50,6 +53,7 @@ const Row = styled.div`
 
 const Label = styled.label`
   font-size: 13px;
+  font-weight: 600;
   color: ${({ theme }) => theme.text};
 `;
 
@@ -61,6 +65,11 @@ const Input = styled.input`
   color: ${({ theme }) => theme.text};
   width: 100%;
   box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    box-shadow: ${({ theme }) => theme.neon};
+  }
 `;
 
 const Select = styled.select`
@@ -70,6 +79,11 @@ const Select = styled.select`
   background: ${({ theme }) => theme.body};
   color: ${({ theme }) => theme.text};
   width: 100%;
+
+  &:focus {
+    outline: none;
+    box-shadow: ${({ theme }) => theme.neon};
+  }
 `;
 
 const TextArea = styled.textarea`
@@ -80,18 +94,26 @@ const TextArea = styled.textarea`
   color: ${({ theme }) => theme.text};
   width: 100%;
   min-height: 96px;
+
+  &:focus {
+    outline: none;
+    box-shadow: ${({ theme }) => theme.neon};
+  }
 `;
 
 const Button = styled.button`
   padding: 10px 14px;
   background: ${({ theme }) => theme.headerBg};
-  color: #fff;
+  color: ${({ theme }) => theme.textOnHeader || "#fff"};
   border: none;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
+  transition: 0.2s ease;
+
   &:hover {
     transform: translateY(-2px);
+    box-shadow: ${({ theme }) => theme.neon};
   }
 `;
 
@@ -99,18 +121,26 @@ const GhostBtn = styled(Button)`
   background: transparent;
   color: ${({ theme }) => theme.text};
   border: 1px solid ${({ theme }) => theme.border};
+
+  &:hover {
+    background: ${({ theme }) => theme.glass};
+  }
 `;
 
 const PreviewImg = styled.img`
   width: 100%;
   height: 180px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid ${({ theme }) => theme.border};
+  box-shadow: 0 4px 12px ${({ theme }) => theme.shadow};
   margin-bottom: 10px;
 `;
 
 /* ================== MAIN COMPONENT ================== */
 export default function QuickAction() {
+  const theme = useTheme();
+
   const {
     events,
     addEvent,
@@ -386,16 +416,32 @@ export default function QuickAction() {
           <Card>
             <h4 style={{ marginTop: 0 }}>Drafts</h4>
             {pendingEvents.length === 0 && (
-              <p style={{ color: "gray" }}>No drafts yet</p>
+              <p style={{ color: theme.text, opacity: 0.6, fontSize: 13 }}>
+                No drafts yet
+              </p>
             )}
 
             {pendingEvents.map((e) => (
               <div key={e.id} style={{ marginBottom: 14 }}>
                 {e.image && <PreviewImg src={e.image} alt={e.title} />}
                 <strong>{e.title}</strong>
-                <div style={{ color: "gray", fontSize: 13 }}>
-                  {e.category} • {e.date} {e.time ? `• ${e.time}` : ""}
+                <div style={{ color: theme.text, opacity: 0.6, fontSize: 13 }}>
+                  {e.category} | {e.date} {e.time ? `| ${e.time}` : ""}
                 </div>
+
+                {e.description && (
+                  <p
+                    style={{
+                      fontSize: "13px",
+                      color: theme.text,
+                      opacity: 0.7,
+                      marginTop: 6,
+                    }}
+                  >
+                    {e.description.slice(0, 80)}...
+                  </p>
+                )}
+
                 <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
                   <Button onClick={() => handleEdit(e.id)}>Edit</Button>
                   <Button onClick={() => handleUpload(e.id)}>Upload</Button>
@@ -407,7 +453,14 @@ export default function QuickAction() {
 
           <Card style={{ marginTop: 14 }}>
             <h4 style={{ marginTop: 0 }}>Quick Help</h4>
-            <p style={{ margin: 0, color: "gray", fontSize: 13 }}>
+            <p
+              style={{
+                margin: 0,
+                color: theme.text,
+                opacity: 0.7,
+                fontSize: 13,
+              }}
+            >
               - Upload lets event appear on Upcoming & Filter pages.
               <br />- Image uses a local preview (object URL). Save/upload to
               persist server-side.
