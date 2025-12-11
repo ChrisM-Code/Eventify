@@ -15,4 +15,6 @@ export const eventTemplate = {
     other: "",
   },
   attendees: [],
+  status: "pending",
+  active: true,
 };

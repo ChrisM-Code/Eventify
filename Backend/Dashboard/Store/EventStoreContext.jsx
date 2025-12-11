@@ -10,9 +10,23 @@ export function EventStoreProvider({ children }) {
   const addEvent = useCallback((event) => {
     setEvents((prev) => [
       ...prev,
-      { ...event, id: Date.now(), uploaded: false },
+      {
+        ...event,
+        id: Date.now(),
+        uploaded: false,
+        status: event.status || "pending",
+        active: event.active ?? true,
+      },
     ]);
   }, []);
+
+  const getFilteredEvents = useCallback(
+    () =>
+      events.filter(
+        (e) => e.status === "confirmed" || e.status === "cancelled"
+      ),
+    [events]
+  );
 
   const updateEvent = useCallback((id, updatedData) => {
     setEvents((prev) =>
@@ -22,7 +36,16 @@ export function EventStoreProvider({ children }) {
 
   const uploadEvent = useCallback((id) => {
     setEvents((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, uploaded: true } : e))
+      prev.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              uploaded: true,
+              status: "upcoming",
+              active: true,
+            }
+          : e
+      )
     );
   }, []);
 
@@ -47,6 +70,28 @@ export function EventStoreProvider({ children }) {
     setTrash((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const cancelEvent = useCallback((id) => {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === id ? { ...e, status: "cancelled", active: true } : e
+      )
+    );
+  }, []);
+
+  const confirmEvent = useCallback((id) => {
+    setEvents((prev) =>
+      prev.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              status: "confirmed",
+              uploaded: true,
+            }
+          : e
+      )
+    );
+  }, []);
+
   const triggerNotification = useCallback((msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
@@ -54,9 +99,6 @@ export function EventStoreProvider({ children }) {
 
   const uploadedEvents = events.filter((e) => e.uploaded);
   const pendingEvents = events.filter((e) => !e.uploaded);
-
-  // debug: optional, remove in prod
-  // console.log("EventStoreProvider mounted. events:", events.length);
 
   return (
     <EventStoreContext.Provider
@@ -70,7 +112,10 @@ export function EventStoreProvider({ children }) {
         uploadEvent,
         deleteEvent,
         restoreEvent,
+        getFilteredEvents,
         permanentDelete,
+        cancelEvent,
+        confirmEvent,
         triggerNotification,
         notification,
       }}
