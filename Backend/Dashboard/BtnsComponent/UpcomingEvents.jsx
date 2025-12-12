@@ -104,10 +104,10 @@ export default function UpcomingEvents() {
             <h3>{event.title}</h3>
 
             <p style={{ opacity: 0.7, marginTop: 4 }}>
-              {event.category} • {event.date} {event.time && `• ${event.time}`}
+              {event.category} | {event.date} {event.time && `| ${event.time}`}
             </p>
 
-            <p style={{ opacity: 0.8, marginTop: 8 }}>📍 {event.location}</p>
+            <p style={{ opacity: 0.8, marginTop: 8 }}> {event.location}</p>
 
             <p style={{ marginTop: 12 }}>
               {event.description?.slice(0, 120)}...
