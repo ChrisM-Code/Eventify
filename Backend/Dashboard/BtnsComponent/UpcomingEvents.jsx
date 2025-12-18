@@ -2,8 +2,9 @@ import styled from "styled-components";
 import { useState } from "react";
 import { useEventStore } from "../Store/EventStoreContext";
 import EventEditorDrawer from "../BtnsComponent/EventEditorDrawer";
+import TicketPrice from "../BtnsComponent/TicketPrice";
 
-/* ========== STYLES ========== */
+/* ================== STYLES ================== */
 const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -19,10 +20,9 @@ const Card = styled.div`
   box-shadow: 0 4px 12px ${({ theme }) => theme.shadow};
   position: relative;
 
-  /* show watermark if cancelled */
   ${({ status }) =>
-    status === "cancelled"
-      ? `
+    status === "cancelled" &&
+    `
     opacity: 0.6;
     &::after {
       content: "CANCELLED";
@@ -30,13 +30,12 @@ const Card = styled.div`
       top: 10px;
       right: 10px;
       background: #b91c1c;
-      color: white;
+      color: #fff;
       padding: 2px 8px;
       border-radius: 4px;
       font-size: 12px;
     }
-  `
-      : ""}
+  `}
 `;
 
 const Image = styled.img`
@@ -58,11 +57,11 @@ const Btn = styled.button`
   flex: 1;
   padding: 8px 12px;
   border: none;
-  background: ${({ theme }) => theme.headerBg};
-  color: white;
   border-radius: 8px;
   cursor: pointer;
   font-size: 13px;
+  color: #fff;
+  background: ${({ theme }) => theme.headerBg};
   transition: 0.2s;
 
   &:hover {
@@ -74,18 +73,64 @@ const Btn = styled.button`
 const CancelBtn = styled(Btn)`
   background: #b91c1c;
 `;
+
 const ConfirmBtn = styled(Btn)`
   background: #059669;
 `;
+
 const DeleteBtn = styled(Btn)`
   background: #6b7280;
 `;
 
+/* ===== Ticket Styles ===== */
+const TicketGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+`;
+
+const TicketBadge = styled.div`
+  background: ${({ theme }) => theme.glass};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 10px;
+  padding: 6px 8px;
+  text-align: center;
+  box-shadow: 0 2px 6px ${({ theme }) => theme.shadow};
+
+  span {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.65;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+`;
+
+const FreeBadge = styled.div`
+  margin-top: 10px;
+  display: inline-block;
+  background: rgba(5, 150, 105, 0.15);
+  color: #059669;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+`;
+
+/* ================== COMPONENT ================== */
 export default function UpcomingEvents() {
   const { events, deleteEvent, cancelEvent, confirmEvent } = useEventStore();
   const [editingEvent, setEditingEvent] = useState(null);
 
-  // Show **all active events**, including confirmed/cancelled
   const upcomingEvents = events.filter((e) => e.status !== "deleted");
 
   return (
@@ -107,11 +152,13 @@ export default function UpcomingEvents() {
               {event.category} | {event.date} {event.time && `| ${event.time}`}
             </p>
 
-            <p style={{ opacity: 0.8, marginTop: 8 }}> {event.location}</p>
+            <p style={{ opacity: 0.8, marginTop: 8 }}>{event.location}</p>
 
             <p style={{ marginTop: 12 }}>
               {event.description?.slice(0, 120)}...
             </p>
+
+            <TicketPrice event={event} />
 
             <ButtonRow>
               <Btn onClick={() => setEditingEvent(event)}>Edit</Btn>

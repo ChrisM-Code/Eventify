@@ -1,12 +1,12 @@
-import { useState, useCallback } from "react";
-import styled from "styled-components";
+import { useState, useEffect } from "react";
+import styled, { useTheme } from "styled-components";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { useTheme } from "styled-components";
 
 import { useEventStore } from "../Store/EventStoreContext";
 import { eventTemplate } from "../Data/eventTemplate";
 
+/* ================== STYLES ================== */
 /* ================== STYLED ================== */
 const Wrapper = styled.div`
   width: 100%;
@@ -137,56 +137,156 @@ const PreviewImg = styled.img`
   margin-bottom: 10px;
 `;
 
-/* ================== MAIN COMPONENT ================== */
+const AddOtherBtn = styled.button`
+  background: transparent;
+  border: 1px dashed ${({ theme }) => theme.border};
+  color: ${({ theme }) => theme.text};
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: ${({ theme }) => theme.mainBg};
+  }
+`;
+
+/* ===== Ticket Price Styles ===== */
+
+const TicketGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+`;
+
+const TicketBadge = styled.div`
+  background: ${({ theme }) => theme.glass};
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 10px;
+  padding: 6px 8px;
+  text-align: center;
+  box-shadow: 0 2px 6px ${({ theme }) => theme.shadow};
+
+  span {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0.65;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 2px;
+    display: block;
+  }
+`;
+
+const FreeBadge = styled.div`
+  margin-top: 10px;
+  display: inline-block;
+  background: rgba(5, 150, 105, 0.15);
+  color: #059669;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+`;
+
+/* ================== ERROR TEXT ================== */
+const ErrorText = styled.span`
+  color: red;
+  font-size: 12px;
+  margin-top: 2px;
+  display: block;
+`;
+
+/* ================== COMPONENT ================== */
 export default function QuickAction() {
   const theme = useTheme();
-
   const {
     events,
+    pendingEvents,
     addEvent,
     updateEvent,
     deleteEvent,
     uploadEvent,
     triggerNotification,
-    pendingEvents,
   } = useEventStore();
 
   const [form, setForm] = useState(eventTemplate);
   const [editId, setEditId] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showOtherTicket, setShowOtherTicket] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
 
-  // image preview state (object URL)
-  const [imagePreview, setImagePreview] = useState(form.image || "");
+  /* ================== HELPERS ================== */
+  const resetForm = () => {
+    setForm({
+      ...eventTemplate,
+      tickets: { ...eventTemplate.tickets },
+      attendees: [...(eventTemplate.attendees || [])],
+    });
+    setImagePreview("");
+    setEditId(null);
+    setShowOtherTicket(false);
+    setValidationErrors({});
+  };
 
-  // handle generic input changes
-  const onChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    if (type === "checkbox") {
-      setForm((f) => ({ ...f, [name]: checked }));
-    } else {
-      setForm((f) => ({ ...f, [name]: value }));
+  const validateForm = () => {
+    const errors = {};
+    if (!form.title.trim()) errors.title = "Title is required";
+    if (!form.date.trim()) errors.date = "Date is required";
+    if (!form.location.trim()) errors.location = "Location is required";
+    if (!form.freeEvent) {
+      const hasPrice = Object.values(form.tickets).some((p) => p.trim());
+      if (!hasPrice) errors.tickets = "At least one ticket price required";
     }
-  }, []);
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-  // handle ticket price changes
-  const onTicketChange = useCallback((tier, value) => {
-    setForm((f) => ({ ...f, tickets: { ...f.tickets, [tier]: value } }));
-  }, []);
+  /* ================== INPUT HANDLERS ================== */
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
-  // handle file upload (image)
-  const onFileChange = useCallback((e) => {
+  const handleTicketChange = (tier, value) => {
+    setForm((prev) => ({
+      ...prev,
+      tickets: { ...prev.tickets, [tier]: value },
+    }));
+  };
+
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
-    setForm((f) => ({ ...f, image: url, imageFile: file }));
-  }, []);
 
-  // Save (create or update)
-  const handleSave = useCallback(() => {
-    if (!form.title || !form.date || !form.location) {
-      return alert("Please provide title, date and location.");
-    }
+    const previewURL = URL.createObjectURL(file);
+    setImagePreview(previewURL);
+    setForm((prev) => ({ ...prev, image: previewURL, imageFile: file }));
+  };
+
+  const toggleFreeEvent = (checked) => {
+    setForm((prev) => ({
+      ...prev,
+      freeEvent: checked,
+      tickets: checked
+        ? { vvip: "", vip: "", regular: "", other: "" }
+        : prev.tickets,
+    }));
+  };
+
+  /* ================== ACTION HANDLERS ================== */
+  const handleSave = () => {
+    if (!validateForm()) return;
 
     if (editId) {
       updateEvent(editId, form);
@@ -196,277 +296,203 @@ export default function QuickAction() {
       triggerNotification("Event created");
     }
 
-    // Reset form
-    setForm({
-      ...eventTemplate,
-      tickets: { ...eventTemplate.tickets },
-      attendees: [...(eventTemplate.attendees || [])],
-      imageFile: null,
-      image: "",
-    });
+    resetForm();
+  };
 
-    setImagePreview("");
-    setEditId(null);
-  }, [form, editId, updateEvent, addEvent, triggerNotification]);
+  const handleEdit = (id) => {
+    const event = events.find((e) => e.id === id);
+    if (!event) return;
 
-  // Edit existing draft
-  const handleEdit = useCallback(
-    (id) => {
-      const item = events.find((e) => e.id === id);
-      if (!item) return;
-      setForm(item);
-      setImagePreview(item.image || "");
-      setEditId(id);
-    },
-    [events]
-  );
+    setForm(event);
+    setImagePreview(event.image || "");
+    setEditId(id);
+  };
 
-  // Upload event
-  const handleUpload = useCallback(
-    (id) => {
-      uploadEvent(id);
-      triggerNotification("Event uploaded to site");
-    },
-    [uploadEvent, triggerNotification]
-  );
+  const handleUpload = (id) => {
+    uploadEvent(id);
+    triggerNotification("Event uploaded");
+  };
 
-  // Delete → moves to trash
-  const handleDelete = useCallback(
-    (id) => {
-      deleteEvent(id);
-      triggerNotification("Event moved to trash");
-      if (id === editId) {
-        setForm(eventTemplate);
-        setImagePreview("");
-        setEditId(null);
-      }
-    },
-    [deleteEvent, triggerNotification, editId]
-  );
+  const handleDelete = (id) => {
+    deleteEvent(id);
+    triggerNotification("Event moved to trash");
+    if (id === editId) resetForm();
+  };
 
-  // toggle free event
-  const toggleFreeEvent = useCallback((checked) => {
-    setForm((f) => ({
-      ...f,
-      freeEvent: checked,
-      tickets: checked
-        ? { vvip: "", vip: "", regular: "", other: "" }
-        : f.tickets,
-    }));
-  }, []);
+  useEffect(() => {
+    if (form.tickets.other) setShowOtherTicket(true);
+  }, [form.tickets.other]);
 
+  /* ================== RENDER HELPERS ================== */
+  const renderTicketPrices = (event) => {
+    if (event.freeEvent) return <FreeBadge>Free Event</FreeBadge>;
+
+    const tickets =
+      event.tickets &&
+      Object.entries(event.tickets).filter(([, price]) => price);
+
+    if (!tickets || tickets.length === 0) return null;
+
+    return (
+      <TicketGrid>
+        {tickets.map(([type, price]) => (
+          <TicketBadge key={type}>
+            <span>{type}</span>
+            <strong>{price}</strong>
+          </TicketBadge>
+        ))}
+      </TicketGrid>
+    );
+  };
+
+  /* ================== JSX ================== */
   return (
     <Wrapper>
       <Grid>
         {/* LEFT: FORM */}
         <Card>
-          <h3 style={{ marginTop: 0 }}>
-            {editId ? "Edit Event" : "Create Event"}
-          </h3>
+          <h3>{editId ? "Edit Event" : "Create Event"}</h3>
 
           <Label>Title</Label>
-          <Input
-            name="title"
-            value={form.title}
-            onChange={onChange}
-            placeholder="Event title"
-          />
+          <Input name="title" value={form.title} onChange={handleChange} />
+          {validationErrors.title && (
+            <ErrorText>{validationErrors.title}</ErrorText>
+          )}
 
-          <Row className="stack">
-            <div style={{ width: "100%" }}>
-              <Label>Category</Label>
-              <Select name="category" value={form.category} onChange={onChange}>
-                <option>Music</option>
-                <option>Tech</option>
-                <option>Sports</option>
-                <option>Food</option>
-                <option>Business</option>
-                <option>Community</option>
-                <option>Other</option>
-              </Select>
-            </div>
-          </Row>
+          <Label>Category</Label>
+          <Select name="category" value={form.category} onChange={handleChange}>
+            {[
+              "Music",
+              "Tech",
+              "Sports",
+              "Food",
+              "Business",
+              "Community",
+              "Other",
+            ].map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </Select>
 
           <Row>
-            <div style={{ flex: 1 }}>
-              <Label>Date</Label>
-              <Input
-                name="date"
-                value={form.date}
-                placeholder="YYYY-MM-DD"
-                readOnly
-                onFocus={() => setShowCalendar(true)}
-              />
-            </div>
-
-            <div style={{ width: 140 }}>
-              <Label>Time</Label>
-              <Input
-                type="time"
-                name="time"
-                value={form.time}
-                onChange={onChange}
-              />
-            </div>
+            <Input
+              name="date"
+              value={form.date}
+              readOnly
+              onFocus={() => setShowCalendar(true)}
+            />
+            <Input
+              type="time"
+              name="time"
+              value={form.time}
+              onChange={handleChange}
+            />
           </Row>
+          {validationErrors.date && (
+            <ErrorText>{validationErrors.date}</ErrorText>
+          )}
 
           {showCalendar && (
-            <div style={{ marginBottom: 12 }}>
-              <Calendar
-                onChange={(value) => {
-                  const d = new Date(value);
-                  const formatted = d.toISOString().split("T")[0]; // YYYY-MM-DD
-
-                  setForm((f) => ({
-                    ...f,
-                    date: formatted,
-                  }));
-                  setShowCalendar(false);
-                }}
-              />
-            </div>
+            <Calendar
+              onChange={(value) => {
+                setForm((prev) => ({
+                  ...prev,
+                  date: new Date(value).toISOString().split("T")[0],
+                }));
+                setShowCalendar(false);
+              }}
+            />
           )}
 
           <Label>Location</Label>
           <Input
             name="location"
             value={form.location}
-            onChange={onChange}
-            placeholder="Event location (venue, building, street...)"
+            onChange={handleChange}
           />
+          {validationErrors.location && (
+            <ErrorText>{validationErrors.location}</ErrorText>
+          )}
 
-          <Label style={{ marginTop: 12 }}>Image</Label>
-          <Input type="file" accept="image/*" onChange={onFileChange} />
-          {imagePreview ? (
-            <PreviewImg src={imagePreview} alt="preview" />
-          ) : null}
+          <Label>Image</Label>
+          <Input type="file" accept="image/*" onChange={handleFileChange} />
+          {imagePreview && <PreviewImg src={imagePreview} />}
 
           <Label>Description</Label>
           <TextArea
             name="description"
             value={form.description}
-            onChange={onChange}
-            placeholder="Short event description"
+            onChange={handleChange}
           />
 
-          <Row style={{ marginTop: 10 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input
-                type="checkbox"
-                checked={form.freeEvent}
-                onChange={(e) => toggleFreeEvent(e.target.checked)}
-              />
-              Free Event
-            </label>
-          </Row>
+          <label>
+            <input
+              type="checkbox"
+              checked={form.freeEvent}
+              onChange={(e) => toggleFreeEvent(e.target.checked)}
+            />
+            Free Event
+          </label>
 
-          {/* Ticket Prices */}
           {!form.freeEvent && (
             <>
               <Label>Ticket Prices</Label>
-              <Row>
+              {["vvip", "vip", "regular"].map((tier) => (
                 <Input
-                  placeholder="VVIP price"
-                  value={form.tickets.vvip}
-                  onChange={(e) => onTicketChange("vvip", e.target.value)}
+                  key={tier}
+                  placeholder={`${tier.toUpperCase()} price`}
+                  value={form.tickets[tier]}
+                  onChange={(e) => handleTicketChange(tier, e.target.value)}
                 />
+              ))}
+              {showOtherTicket ? (
                 <Input
-                  placeholder="VIP price"
-                  value={form.tickets.vip}
-                  onChange={(e) => onTicketChange("vip", e.target.value)}
-                />
-              </Row>
-              <Row>
-                <Input
-                  placeholder="Regular price"
-                  value={form.tickets.regular}
-                  onChange={(e) => onTicketChange("regular", e.target.value)}
-                />
-                <Input
-                  placeholder="Other price"
+                  placeholder="Other ticket"
                   value={form.tickets.other}
-                  onChange={(e) => onTicketChange("other", e.target.value)}
+                  onChange={(e) => handleTicketChange("other", e.target.value)}
                 />
-              </Row>
+              ) : (
+                <AddOtherBtn onClick={() => setShowOtherTicket(true)}>
+                  Add other ticket
+                </AddOtherBtn>
+              )}
+              {validationErrors.tickets && (
+                <ErrorText>{validationErrors.tickets}</ErrorText>
+              )}
             </>
           )}
 
-          <Row style={{ marginTop: 12 }}>
-            <Button onClick={handleSave}>
-              {editId ? "Update Event" : "Create Event"}
-            </Button>
-            <GhostBtn
-              onClick={() => {
-                setForm({
-                  ...eventTemplate,
-                  tickets: { ...eventTemplate.tickets },
-                  attendees: [...(eventTemplate.attendees || [])],
-                });
-                setImagePreview("");
-                setEditId(null);
-              }}
-            >
-              Reset
-            </GhostBtn>
+          <Row>
+            <Button onClick={handleSave}>{editId ? "Update" : "Create"}</Button>
+            <GhostBtn onClick={resetForm}>Reset</GhostBtn>
           </Row>
         </Card>
 
-        {/* RIGHT: PREVIEW + ACTIONS */}
-        <div>
-          <Card>
-            <h4 style={{ marginTop: 0 }}>Drafts</h4>
-            {pendingEvents.length === 0 && (
-              <p style={{ color: theme.text, opacity: 0.6, fontSize: 13 }}>
-                No drafts yet
-              </p>
-            )}
+        {/* RIGHT: DRAFTS */}
+        <Card>
+          <h4>Drafts</h4>
+          {pendingEvents.length === 0 && (
+            <p style={{ opacity: 0.6 }}>No drafts yet</p>
+          )}
 
-            {pendingEvents.map((e) => (
-              <div key={e.id} style={{ marginBottom: 14 }}>
-                {e.image && <PreviewImg src={e.image} alt={e.title} />}
-                <strong>{e.title}</strong>
-                <div style={{ color: theme.text, opacity: 0.6, fontSize: 13 }}>
-                  {e.category} | {e.date} {e.time ? `| ${e.time}` : ""}
-                </div>
-
-                {e.description && (
-                  <p
-                    style={{
-                      fontSize: "13px",
-                      color: theme.text,
-                      opacity: 0.7,
-                      marginTop: 6,
-                    }}
-                  >
-                    {e.description.slice(0, 80)}...
-                  </p>
-                )}
-
-                <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                  <Button onClick={() => handleEdit(e.id)}>Edit</Button>
-                  <Button onClick={() => handleUpload(e.id)}>Upload</Button>
-                  <GhostBtn onClick={() => handleDelete(e.id)}>Delete</GhostBtn>
-                </div>
+          {pendingEvents.map((e) => (
+            <div key={e.id}>
+              {e.image && <PreviewImg src={e.image} />}
+              <strong>{e.title}</strong>
+              <div style={{ opacity: 0.6 }}>
+                {e.category} | {e.date} {e.time && `| ${e.time}`}
               </div>
-            ))}
-          </Card>
 
-          <Card style={{ marginTop: 14 }}>
-            <h4 style={{ marginTop: 0 }}>Quick Help</h4>
-            <p
-              style={{
-                margin: 0,
-                color: theme.text,
-                opacity: 0.7,
-                fontSize: 13,
-              }}
-            >
-              - Upload lets event appear on Upcoming & Filter pages.
-              <br />- Image uses a local preview (object URL). Save/upload to
-              persist server-side.
-            </p>
-          </Card>
-        </div>
+              {renderTicketPrices(e)}
+
+              <Row>
+                <Button onClick={() => handleEdit(e.id)}>Edit</Button>
+                <Button onClick={() => handleUpload(e.id)}>Upload</Button>
+                <GhostBtn onClick={() => handleDelete(e.id)}>Delete</GhostBtn>
+              </Row>
+            </div>
+          ))}
+        </Card>
       </Grid>
     </Wrapper>
   );

@@ -14,8 +14,8 @@ export function EventStoreProvider({ children }) {
         ...event,
         id: Date.now(),
         uploaded: false,
-        status: event.status || "pending",
-        active: event.active ?? true,
+        status: "draft",
+        active: true,
       },
     ]);
   }, []);
@@ -23,7 +23,9 @@ export function EventStoreProvider({ children }) {
   const getFilteredEvents = useCallback(
     () =>
       events.filter(
-        (e) => e.status === "confirmed" || e.status === "cancelled"
+        (e) =>
+          e.uploaded &&
+          ["upcoming", "confirmed", "cancelled"].includes(e.status)
       ),
     [events]
   );

@@ -6,14 +6,15 @@ export const eventTemplate = {
   time: "",
   location: "",
   description: "",
-  category: "Music",
-  freeEvent: false,
+  category: "",
   tickets: {
     vvip: "",
     vip: "",
     regular: "",
     other: "",
   },
+  freeEvent: false,
+
   attendees: [],
   status: "pending",
   active: true,

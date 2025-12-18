@@ -94,7 +94,7 @@ export default function TrashBin() {
               <Button onClick={() => restoreEvent(item.id)}>Restore</Button>
 
               <GhostButton onClick={() => permanentDelete(item.id)}>
-                Delete Forever
+                Delete
               </GhostButton>
             </Row>
           </TrashItem>

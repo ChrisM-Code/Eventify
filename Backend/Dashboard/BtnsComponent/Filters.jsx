@@ -2,9 +2,9 @@ import styled from "styled-components";
 import { useState } from "react";
 import { useEventStore } from "../Store/EventStoreContext";
 import EventEditorDrawer from "../BtnsComponent/EventEditorDrawer";
+import TicketPrice from "../BtnsComponent/TicketPrice";
 
-/* -------------------- STYLES -------------------- */
-
+/* ================== STYLES ================== */
 const PageWrapper = styled.div`
   padding: 25px;
   color: ${({ theme }) => theme.text};
@@ -12,6 +12,7 @@ const PageWrapper = styled.div`
 
 const FilterHeader = styled.div`
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 15px;
@@ -20,7 +21,6 @@ const FilterHeader = styled.div`
   border-radius: 14px;
   backdrop-filter: blur(10px);
   margin-bottom: 25px;
-  flex-wrap: wrap;
 `;
 
 const SearchInput = styled.input`
@@ -38,25 +38,41 @@ const SearchInput = styled.input`
   }
 `;
 
-const FilterSelect = styled.select`
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid ${({ theme }) => theme.border};
-  background: ${({ theme }) => theme.glass};
-  color: ${({ theme }) => theme.text};
-  backdrop-filter: blur(6px);
+const Tabs = styled.div`
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
-const SectionWrapper = styled.div`
-  margin-top: 40px;
+const Tab = styled.button`
+  white-space: nowrap;
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  background: ${({ active, theme }) =>
+    active ? theme.headerBg : theme.mainBg};
+  color: ${({ active }) => (active ? "white" : "inherit")};
+  box-shadow: ${({ active, theme }) => (active ? theme.neon : "none")};
+  cursor: pointer;
+  transition: 0.25s ease;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.9;
+  }
 `;
 
 const SectionTitle = styled.h2`
   margin-bottom: 15px;
-  color: ${({ theme }) => theme.text};
 `;
 
-/* GRID + CARD */
 const EventGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -125,38 +141,6 @@ const EditRow = styled.div`
   justify-content: flex-end;
 `;
 
-const Tabs = styled.div`
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 8px 4px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  flex-shrink: 0;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-const Tab = styled.button`
-  white-space: nowrap;
-  padding: 10px 22px;
-  border-radius: 10px;
-  border: none;
-  background: ${({ active, theme }) =>
-    active ? theme.headerBg : theme.mainBg};
-  color: ${({ active }) => (active ? "white" : "inherit")};
-  box-shadow: ${({ active, theme }) => (active ? theme.neon : "none")};
-  cursor: pointer;
-  transition: 0.25s ease;
-  flex-shrink: 0;
-
-  &:hover {
-    opacity: 0.9;
-  }
-`;
-
 const PaginationWrapper = styled.div`
   margin-top: 30px;
   display: flex;
@@ -185,16 +169,16 @@ const PageBtn = styled.button`
   }
 `;
 
+/* ================== COMPONENT ================== */
 export default function FilterPage() {
   const { events } = useEventStore();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("confirmed");
   const [editingEvent, setEditingEvent] = useState(null);
-
   const [page, setPage] = useState(1);
   const perPage = 6;
 
-  // FILTER LOGIC
+  // Filter by search term
   const filtered = events.filter((e) => {
     const term = search.toLowerCase();
     return (
@@ -204,6 +188,7 @@ export default function FilterPage() {
     );
   });
 
+  // Filter by tab
   const tabEvents = filtered.filter((e) => {
     if (filter === "confirmed") return e.status === "confirmed";
     if (filter === "cancelled") return e.status === "cancelled";
@@ -211,69 +196,37 @@ export default function FilterPage() {
     return true;
   });
 
-  // PAGINATION
+  // Pagination
   const start = (page - 1) * perPage;
   const paginated = tabEvents.slice(start, start + perPage);
 
   return (
     <PageWrapper>
-      {/* 🔍 Search + Tabs */}
       <FilterHeader>
-        {/* Search */}
         <SearchInput
           placeholder="Search events..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        {/* Tabs */}
         <Tabs>
-          <Tab
-            active={filter === "confirmed"}
-            onClick={() => {
-              setFilter("confirmed");
-              setPage(1);
-            }}
-          >
-            Confirmed
-          </Tab>
-
-          <Tab
-            active={filter === "cancelled"}
-            onClick={() => {
-              setFilter("cancelled");
-              setPage(1);
-            }}
-          >
-            Cancelled
-          </Tab>
-
-          <Tab
-            active={filter === "past"}
-            onClick={() => {
-              setFilter("past");
-              setPage(1);
-            }}
-          >
-            Past
-          </Tab>
-
-          <Tab
-            active={filter === "all"}
-            onClick={() => {
-              setFilter("all");
-              setPage(1);
-            }}
-          >
-            All
-          </Tab>
+          {["confirmed", "cancelled", "past", "all"].map((tab) => (
+            <Tab
+              key={tab}
+              active={filter === tab}
+              onClick={() => {
+                setFilter(tab);
+                setPage(1);
+              }}
+            >
+              {tab.toUpperCase()}
+            </Tab>
+          ))}
         </Tabs>
       </FilterHeader>
 
-      {/* ✨ Active Tab Title */}
       <SectionTitle>{filter.toUpperCase()} EVENTS</SectionTitle>
 
-      {/* GRID */}
       <EventGrid>
         {paginated.length === 0 && <p>No events found.</p>}
 
@@ -287,6 +240,8 @@ export default function FilterPage() {
             <p>{event.location}</p>
             <p style={{ marginTop: 10 }}>{event.description}</p>
 
+            <TicketPrice event={event} />
+
             <EditRow>
               <Btn onClick={() => setEditingEvent(event)}>Edit</Btn>
             </EditRow>
@@ -294,13 +249,11 @@ export default function FilterPage() {
         ))}
       </EventGrid>
 
-      {/* PAGINATION */}
       {tabEvents.length > perPage && (
         <PaginationWrapper>
           <PageBtn disabled={page === 1} onClick={() => setPage(page - 1)}>
             Previous
           </PageBtn>
-
           <PageBtn
             disabled={start + perPage >= tabEvents.length}
             onClick={() => setPage(page + 1)}
@@ -310,7 +263,6 @@ export default function FilterPage() {
         </PaginationWrapper>
       )}
 
-      {/* Drawer */}
       {editingEvent && (
         <EventEditorDrawer
           event={editingEvent}
