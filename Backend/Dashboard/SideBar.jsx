@@ -47,6 +47,7 @@ function SideBar({ setActivePage }) {
     if (section === "events") setActivePage("events");
     if (section === "graph") setActivePage("graph");
     if (section === "trashbin") setActivePage("trashbin");
+    if (section === "analytics") setActivePage("analytics");
 
     if (section === "maindash") setActivePage("dashboard");
   };
@@ -58,6 +59,10 @@ function SideBar({ setActivePage }) {
       </SectionButton>
 
       <SectionButton onClick={() => toggleSection("menu")}>Menu</SectionButton>
+
+      <SectionButton onClick={() => toggleSection("analytics")}>
+        Analytics
+      </SectionButton>
 
       <SectionButton onClick={() => toggleSection("notification")}>
         Notifications

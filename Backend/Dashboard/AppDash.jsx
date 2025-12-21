@@ -13,6 +13,7 @@ import Notification from "./BtnsComponent/Notification";
 import QuickAction from "./BtnsComponent/QuickAction";
 import UpcomingEvents from "./BtnsComponent/UpcomingEvents";
 import TrashBin from "./BtnsComponent/TrashBin";
+import Analytics from "./BtnsComponent/Analytics";
 
 import { lightTheme, darkTheme } from "./Themes/Theme";
 
@@ -90,6 +91,7 @@ export default function AppDash() {
               {activePage === "quickaction" && <QuickAction />}
               {activePage === "events" && <UpcomingEvents />}
               {activePage === "trashbin" && <TrashBin />}
+              {activePage === "analytics" && <Analytics />}
             </MainContent>
           </ContentWrapper>
 
