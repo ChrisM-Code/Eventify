@@ -1,21 +1,30 @@
 export const eventTemplate = {
   image: "",
   imageFile: null,
+
   title: "",
-  date: "",
-  time: "",
+  category: "",
+
+  // NEW – unified date/time model
+  startDate: "",
+  endDate: "",
+  startTime: "",
+  endTime: "",
+
   location: "",
   description: "",
-  category: "",
+
   tickets: {
     vvip: "",
     vip: "",
     regular: "",
     other: "",
   },
-  freeEvent: false,
 
+  freeEvent: false,
   attendees: [],
-  status: "pending",
+
+  status: "draft", // draft | upcoming | confirmed | cancelled | past
+  uploaded: false,
   active: true,
 };

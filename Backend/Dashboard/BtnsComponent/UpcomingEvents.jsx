@@ -148,8 +148,16 @@ export default function UpcomingEvents() {
 
             <h3>{event.title}</h3>
 
-            <p style={{ opacity: 0.7, marginTop: 4 }}>
-              {event.category} | {event.date} {event.time && `| ${event.time}`}
+            <p style={{ opacity: 0.7 }}>
+              {event.startDate === event.endDate || !event.endDate ? (
+                <>
+                  {event.startDate} | {event.startTime} | {event.endTime}
+                </>
+              ) : (
+                <>
+                  {event.startDate} → {event.endDate}
+                </>
+              )}
             </p>
 
             <p style={{ opacity: 0.8, marginTop: 8 }}>{event.location}</p>
@@ -161,7 +169,7 @@ export default function UpcomingEvents() {
             <TicketPrice event={event} />
 
             <ButtonRow>
-              <Btn onClick={() => setEditingEvent(event)}>Edit</Btn>
+              <Btn disabled={event.status === "past"}>Edit</Btn>
               <CancelBtn onClick={() => cancelEvent(event.id)}>
                 Cancel
               </CancelBtn>

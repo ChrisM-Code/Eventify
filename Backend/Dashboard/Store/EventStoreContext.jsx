@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from "react";
+import { useEffect } from "react";
 
 const EventStoreContext = createContext(undefined);
 
@@ -99,15 +100,54 @@ export function EventStoreProvider({ children }) {
     setTimeout(() => setNotification(null), 3000);
   }, []);
 
-  const uploadedEvents = events.filter((e) => e.uploaded);
-  const pendingEvents = events.filter((e) => !e.uploaded);
+  const isEventPast = (event) => {
+    if (!event?.startDate) return false;
+
+    const endDate = event.endDate || event.startDate;
+    const endTime = event.endTime || "23:59";
+
+    const eventEnd = new Date(`${endDate}T${endTime}`);
+    return eventEnd < new Date();
+  };
+
+  const pendingEvents = events.filter((e) => e.status === "draft");
+
+  const upcomingEvents = events.filter(
+    (e) =>
+      ["upcoming", "confirmed", "cancelled"].includes(e.status) &&
+      !isEventPast(e)
+  );
+
+  const pastEvents = events.filter(
+    (e) => e.status === "past" || (e.status !== "draft" && isEventPast(e))
+  );
+
+  useEffect(() => {
+    setEvents((prev) =>
+      prev.map((event) => {
+        if (
+          event.status !== "past" &&
+          event.status !== "draft" &&
+          isEventPast(event)
+        ) {
+          return {
+            ...event,
+            status: "past",
+            active: false,
+          };
+        }
+        return event;
+      })
+    );
+  }, [isEventPast]);
 
   return (
     <EventStoreContext.Provider
       value={{
         events,
         trash,
-        uploadedEvents,
+        pastEvents,
+        upcomingEvents,
         pendingEvents,
         addEvent,
         updateEvent,

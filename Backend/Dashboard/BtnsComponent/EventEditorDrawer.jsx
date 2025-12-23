@@ -95,6 +95,8 @@ export default function EventEditorDrawer({ event, onClose }) {
   const [form, setForm] = useState({
     title: event.title,
     description: event.description,
+    startDate: event.startDate,
+    endDate: event.endDate,
     startTime: event.startTime,
     endTime: event.endTime,
     location: event.location,
@@ -131,16 +133,30 @@ export default function EventEditorDrawer({ event, onClose }) {
             onChange={(e) => setForm({ ...form, description: e.target.value })}
           />
 
+          <label>Start Date</label>
+          <input
+            type="date"
+            value={form.startDate}
+            onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+          />
+
           <label>Start Time</label>
           <input
-            type="datetime-local"
+            type="time"
             value={form.startTime}
             onChange={(e) => setForm({ ...form, startTime: e.target.value })}
           />
 
+          <label>End Date</label>
+          <input
+            type="date"
+            value={form.endDate}
+            onChange={(e) => setForm({ ...form, endDate: e.target.value })}
+          />
+
           <label>End Time</label>
           <input
-            type="datetime-local"
+            type="time"
             value={form.endTime}
             onChange={(e) => setForm({ ...form, endTime: e.target.value })}
           />

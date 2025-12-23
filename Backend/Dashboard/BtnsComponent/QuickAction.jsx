@@ -222,6 +222,7 @@ export default function QuickAction() {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showOtherTicket, setShowOtherTicket] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const isSingleDay = event.startDate === event.endDate || !event.endDate;
 
   /* ================== HELPERS ================== */
   const resetForm = () => {
@@ -238,8 +239,8 @@ export default function QuickAction() {
 
   const validateForm = () => {
     const errors = {};
-    if (!form.title.trim()) errors.title = "Title is required";
-    if (!form.date.trim()) errors.date = "Date is required";
+    if (!form.startDate) errors.startDate = "Start date is required";
+    if (!form.startTime) errors.startTime = "Start time is required";
     if (!form.location.trim()) errors.location = "Location is required";
     if (!form.freeEvent) {
       const hasPrice = Object.values(form.tickets).some((p) => p.trim());
@@ -309,6 +310,7 @@ export default function QuickAction() {
   };
 
   const handleUpload = (id) => {
+    if (!id) return;
     uploadEvent(id);
     triggerNotification("Event uploaded");
   };
@@ -373,21 +375,40 @@ export default function QuickAction() {
               <option key={c}>{c}</option>
             ))}
           </Select>
-
           <Row>
+            <Label>Start Date</Label>
             <Input
-              name="date"
-              value={form.date}
-              readOnly
-              onFocus={() => setShowCalendar(true)}
+              type="date"
+              name="startDate"
+              value={form.startDate}
+              onChange={handleChange}
             />
+
+            <Label>Start Time</Label>
             <Input
               type="time"
-              name="time"
-              value={form.time}
+              name="startTime"
+              value={form.startTime}
+              onChange={handleChange}
+            />
+
+            <Label>End Date (optional)</Label>
+            <Input
+              type="date"
+              name="endDate"
+              value={form.endDate}
+              onChange={handleChange}
+            />
+
+            <Label>End Time</Label>
+            <Input
+              type="time"
+              name="endTime"
+              value={form.endTime}
               onChange={handleChange}
             />
           </Row>
+
           {validationErrors.date && (
             <ErrorText>{validationErrors.date}</ErrorText>
           )}
@@ -475,16 +496,12 @@ export default function QuickAction() {
             <p style={{ opacity: 0.6 }}>No drafts yet</p>
           )}
 
-          {pendingEvents.map((e) => (
+          {pendingEvents.filter(Boolean).map((e) => (
             <div key={e.id}>
               {e.image && <PreviewImg src={e.image} />}
               <strong>{e.title}</strong>
-              <div style={{ opacity: 0.6 }}>
-                {e.category} | {e.date} {e.time && `| ${e.time}`}
-              </div>
-
+              {e.category} | {e.startDate} {e.startTime && `| ${e.startTime}`}
               {renderTicketPrices(e)}
-
               <Row>
                 <Button onClick={() => handleEdit(e.id)}>Edit</Button>
                 <Button onClick={() => handleUpload(e.id)}>Upload</Button>

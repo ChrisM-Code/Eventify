@@ -93,6 +93,22 @@ const Card = styled.div`
   &:hover {
     transform: translateY(-4px);
   }
+  ${({ status }) =>
+    status === "past" &&
+    `
+      opacity: 0.5;
+      &::after {
+        content: "PAST EVENT";
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #374151;
+        padding: 4px 12px;
+        color: white;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+    `}
 
   ${({ status }) =>
     status === "cancelled" &&
@@ -234,8 +250,16 @@ export default function FilterPage() {
           <Card key={event.id} status={event.status}>
             {event.image && <Image src={event.image} alt={event.title} />}
             <h3>{event.title}</h3>
-            <p style={{ opacity: 0.7, marginTop: 4 }}>
-              {event.category} | {event.date} {event.time && `| ${event.time}`}
+            <p style={{ opacity: 0.7 }}>
+              {event.startDate === event.endDate || !event.endDate ? (
+                <>
+                  {event.startDate} | {event.startTime} – {event.endTime}
+                </>
+              ) : (
+                <>
+                  {event.startDate} → {event.endDate}
+                </>
+              )}
             </p>
             <p>{event.location}</p>
             <p style={{ marginTop: 10 }}>{event.description}</p>
@@ -243,7 +267,7 @@ export default function FilterPage() {
             <TicketPrice event={event} />
 
             <EditRow>
-              <Btn onClick={() => setEditingEvent(event)}>Edit</Btn>
+              <Btn disabled={event.status === "past"}>Edit</Btn>
             </EditRow>
           </Card>
         ))}

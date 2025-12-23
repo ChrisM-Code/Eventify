@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
 import {
   FiCalendar,
   FiClock,
@@ -72,7 +71,6 @@ const Count = styled.div`
 /* ================= DASHBOARD ================= */
 
 function MainDash() {
-  const navigate = useNavigate();
   const { events = [] } = useEventStore(); // safe default
 
   /* ========= CORRECT COUNTS ========= */
@@ -100,7 +98,7 @@ function MainDash() {
       <Grid>
         {/* ===== TOP PRIORITY ===== */}
 
-        <Card onClick={() => navigate("/filter")}>
+        <Card>
           <CardHeader color="#3b82f6">
             <FiCalendar />
             <h3>Total Events</h3>
@@ -108,7 +106,7 @@ function MainDash() {
           <Count>{totalEvents}</Count>
         </Card>
 
-        <Card onClick={() => navigate("/filter?filter=upcoming")}>
+        <Card>
           <CardHeader color="#f59e0b">
             <FiClock />
             <h3>Upcoming Events</h3>
@@ -116,7 +114,7 @@ function MainDash() {
           <Count>{upcomingEvents.length}</Count>
         </Card>
 
-        <Card onClick={() => navigate("/filter?filter=confirmed")}>
+        <Card>
           <CardHeader color="#22c55e">
             <FiCheckCircle />
             <h3>Confirmed Events</h3>
@@ -124,7 +122,7 @@ function MainDash() {
           <Count>{confirmedEvents.length}</Count>
         </Card>
 
-        <Card onClick={() => navigate("/filter?filter=cancelled")}>
+        <Card>
           <CardHeader color="#ef4444">
             <FiXCircle />
             <h3>Cancelled Events</h3>
@@ -134,7 +132,7 @@ function MainDash() {
 
         {/* ===== ADMIN ===== */}
 
-        <Card onClick={() => navigate("/quickaction")}>
+        <Card>
           <CardHeader color="#ec4899">
             <FiEdit />
             <h3>Draft Events</h3>
