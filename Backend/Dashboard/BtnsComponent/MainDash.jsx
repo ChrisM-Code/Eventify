@@ -71,7 +71,7 @@ const Count = styled.div`
 /* ================= DASHBOARD ================= */
 
 function MainDash() {
-  const { events = [] } = useEventStore(); // safe default
+  const { events = [], pastEvents = [] } = useEventStore();
 
   /* ========= CORRECT COUNTS ========= */
 
@@ -80,7 +80,10 @@ function MainDash() {
   const draftEvents = events.filter((e) => e.status === "draft" && !e.uploaded);
 
   const upcomingEvents = events.filter(
-    (e) => e.status === "upcoming" && e.uploaded
+    (e) =>
+      e.status === "upcoming" &&
+      e.uploaded &&
+      !pastEvents.some((p) => p.id === e.id)
   );
 
   const confirmedEvents = events.filter(
@@ -158,12 +161,12 @@ function MainDash() {
           <Count>—</Count>
         </Card>
 
-        <Card style={{ opacity: 0.4, pointerEvents: "none" }}>
+        <Card>
           <CardHeader color="#6b7280">
             <FiArchive />
             <h3>Past Events</h3>
           </CardHeader>
-          <Count>—</Count>
+          <Count>{pastEvents.length}</Count>
         </Card>
       </Grid>
     </DashWrapper>
