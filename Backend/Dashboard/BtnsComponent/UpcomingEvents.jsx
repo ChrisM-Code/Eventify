@@ -1,72 +1,136 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useEventStore } from "../Store/EventStoreContext";
 import EventEditorDrawer from "../BtnsComponent/EventEditorDrawer";
 import TicketPrice from "../BtnsComponent/TicketPrice";
 
-/* ================== STYLES ================== */
+/* ================== PAGE ================== */
+
+const PageWrapper = styled.section`
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+const PageHeader = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const Title = styled.h2`
+  font-size: 22px;
+  font-weight: 700;
+`;
+
+const Subtitle = styled.p`
+  font-size: 14px;
+  opacity: 0.7;
+`;
+
+/* ================== GRID ================== */
+
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 25px;
-  padding: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
-const Card = styled.div`
+/* ================== CARD ================== */
+
+const Card = styled.article`
   background: ${({ theme }) => theme.mainBg};
-  color: ${({ theme }) => theme.text};
-  padding: 20px;
   border-radius: 16px;
-  box-shadow: 0 4px 12px ${({ theme }) => theme.shadow};
+  box-shadow: 0 6px 16px ${({ theme }) => theme.shadow};
+  overflow: hidden;
   position: relative;
-
-  ${({ status }) =>
-    status === "cancelled" &&
-    `
-    opacity: 0.6;
-    &::after {
-      content: "CANCELLED";
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: #b91c1c;
-      color: #fff;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-  `}
+  display: flex;
+  flex-direction: column;
+  opacity: ${({ status }) => (status === "cancelled" ? 0.7 : 1)};
 `;
+
+const CancelBadge = styled.span`
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #b91c1c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+`;
+
+/* ================== MEDIA ================== */
 
 const Image = styled.img`
   width: 100%;
-  height: 180px;
+  height: 190px;
   object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 10px;
 `;
 
-const ButtonRow = styled.div`
-  margin-top: 15px;
+/* ================== CONTENT ================== */
+
+const Content = styled.div`
+  padding: 16px;
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const EventTitle = styled.h3`
+  font-size: 18px;
+  font-weight: 700;
+`;
+
+const Meta = styled.div`
+  font-size: 13px;
+  opacity: 0.7;
+`;
+
+const Location = styled.div`
+  font-size: 13px;
+  font-weight: 500;
+`;
+
+const Description = styled.p`
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.85;
+`;
+
+/* ================== ACTIONS ================== */
+
+const ButtonRow = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  padding: 5px;
+  border-top: 1px solid ${({ theme }) => theme.border};
 `;
 
 const Btn = styled.button`
-  flex: 1;
-  padding: 8px 12px;
-  border: none;
+  padding: 9px 12px;
   border-radius: 8px;
-  cursor: pointer;
   font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
   color: #fff;
   background: ${({ theme }) => theme.headerBg};
-  transition: 0.2s;
 
-  &:hover {
-    opacity: 0.85;
-    transform: translateY(-2px);
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 `;
 
@@ -82,94 +146,95 @@ const DeleteBtn = styled(Btn)`
   background: #6b7280;
 `;
 
-/* ===== Ticket Styles ===== */
-const TicketGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-`;
-
-const TicketBadge = styled.div`
-  background: ${({ theme }) => theme.glass};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 10px;
-  padding: 6px 8px;
-  text-align: center;
-  box-shadow: 0 2px 6px ${({ theme }) => theme.shadow};
-
-  span {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    opacity: 0.65;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  strong {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    margin-top: 2px;
-  }
-`;
-
-const FreeBadge = styled.div`
-  margin-top: 10px;
-  display: inline-block;
-  background: rgba(5, 150, 105, 0.15);
-  color: #059669;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-`;
-
 /* ================== COMPONENT ================== */
-export default function UpcomingEvents() {
-  const { events, deleteEvent, cancelEvent, confirmEvent } = useEventStore();
-  const [editingEvent, setEditingEvent] = useState(null);
 
-  const upcomingEvents = events.filter((e) => e.status !== "deleted");
+export default function UpcomingEvents() {
+  const {
+    events = [],
+    deleteEvent,
+    cancelEvent,
+    confirmEvent,
+  } = useEventStore();
+
+  const [editingEventId, setEditingEventId] = useState(null);
+
+  /* ✅ Always get the latest event from store */
+  const editingEvent = useMemo(
+    () => events.find((e) => e.id === editingEventId),
+    [events, editingEventId]
+  );
+
+  const upcomingEvents = useMemo(() => {
+    return [...events]
+      .filter((e) => e?.status !== "deleted" && e?.status !== "past")
+      .sort((a, b) => {
+        if (a?.createdAt && b?.createdAt) {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        return String(b?.id).localeCompare(String(a?.id));
+      });
+  }, [events]);
 
   return (
-    <>
+    <PageWrapper>
+      <PageHeader>
+        <Title>Upcoming Events</Title>
+        <Subtitle>
+          Manage all scheduled and confirmed events before they go live
+        </Subtitle>
+      </PageHeader>
+
       <Grid>
         {upcomingEvents.length === 0 && (
-          <p style={{ textAlign: "center", opacity: 0.6 }}>
-            No upcoming events yet.
-          </p>
+          <p style={{ opacity: 0.6 }}>No upcoming events available.</p>
         )}
 
         {upcomingEvents.map((event) => (
           <Card key={event.id} status={event.status}>
-            {event.image && <Image src={event.image} alt={event.title} />}
+            {event.status === "cancelled" && (
+              <CancelBadge>CANCELLED</CancelBadge>
+            )}
 
-            <h3>{event.title}</h3>
+            {event.image && (
+              <Image src={event.image} alt={event.title || "Event image"} />
+            )}
 
-            <p style={{ opacity: 0.7 }}>
-              {event.startDate === event.endDate || !event.endDate ? (
-                <>
-                  {event.startDate} | {event.startTime} | {event.endTime}
-                </>
-              ) : (
-                <>
-                  {event.startDate} → {event.endDate}
-                </>
-              )}
-            </p>
+            <Content>
+              <EventTitle>{event.title || "Untitled Event"}</EventTitle>
 
-            <p style={{ opacity: 0.8, marginTop: 8 }}>{event.location}</p>
+              <Meta>
+                {event.startDate ? (
+                  event.endDate && event.startDate !== event.endDate ? (
+                    <>
+                      {event.startDate} → {event.endDate}
+                    </>
+                  ) : (
+                    <>
+                      {event.startDate}
+                      {event.startTime && ` • ${event.startTime}`}
+                      {event.endTime && ` – ${event.endTime}`}
+                    </>
+                  )
+                ) : (
+                  "Date not set"
+                )}
+              </Meta>
 
-            <p style={{ marginTop: 12 }}>
-              {event.description?.slice(0, 120)}...
-            </p>
+              <Location>{event.location || "Location not set"}</Location>
 
-            <TicketPrice event={event} />
+              <Description>
+                {event.description
+                  ? event.description.length > 120
+                    ? `${event.description.slice(0, 120)}…`
+                    : event.description
+                  : "No description provided"}
+              </Description>
+
+              <TicketPrice event={event} />
+            </Content>
 
             <ButtonRow>
-              <Btn disabled={event.status === "past"}>Edit</Btn>
+              <Btn onClick={() => setEditingEventId(event.id)}>Edit</Btn>
               <CancelBtn onClick={() => cancelEvent(event.id)}>
                 Cancel
               </CancelBtn>
@@ -184,12 +249,13 @@ export default function UpcomingEvents() {
         ))}
       </Grid>
 
+      {/* ✅ Editor Drawer always receives fresh data */}
       {editingEvent && (
         <EventEditorDrawer
           event={editingEvent}
-          onClose={() => setEditingEvent(null)}
+          onClose={() => setEditingEventId(null)}
         />
       )}
-    </>
+    </PageWrapper>
   );
 }

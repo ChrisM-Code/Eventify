@@ -6,55 +6,67 @@ import "react-calendar/dist/Calendar.css";
 import { useEventStore } from "../Store/EventStoreContext";
 import { eventTemplate } from "../Data/eventTemplate";
 
-/* ================== STYLES ================== */
-/* ================== STYLED ================== */
+/* ================== LAYOUT ================== */
+
 const Wrapper = styled.div`
   width: 100%;
   padding: 20px;
-  color: ${({ theme }) => theme.text};
   background: ${({ theme }) => theme.mainBg};
-  box-sizing: border-box;
-
-  @media (max-width: 900px) {
-    padding: 12px;
-  }
+  color: ${({ theme }) => theme.text};
 `;
 
 const Grid = styled.div`
   display: grid;
-  gap: 18px;
-  grid-template-columns: 1fr 420px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 20px;
+  height: calc(100vh - 120px);
 
   @media (max-width: 1100px) {
     grid-template-columns: 1fr;
+    height: auto;
   }
 `;
 
 const Card = styled.div`
   background: ${({ theme }) => theme.glass};
   border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 6px 16px ${({ theme }) => theme.shadow};
-  padding: 18px;
   border-radius: 14px;
-  backdrop-filter: blur(8px);
-`;
-
-const Row = styled.div`
+  padding: 18px;
   display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-
-  &.stack {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  flex-direction: column;
+  gap: 14px;
+  overflow: hidden;
 `;
+
+const FormBody = styled.div`
+  display: grid;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 6px;
+`;
+
+const DraftList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+`;
+
+const DraftItem = styled.div`
+  border: 1px solid ${({ theme }) => theme.border};
+  border-radius: 12px;
+  padding: 12px;
+  background: ${({ theme }) => theme.body};
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+/* ================== FORM ================== */
 
 const Label = styled.label`
   font-size: 13px;
   font-weight: 600;
-  color: ${({ theme }) => theme.text};
 `;
 
 const Input = styled.input`
@@ -64,7 +76,6 @@ const Input = styled.input`
   background: ${({ theme }) => theme.body};
   color: ${({ theme }) => theme.text};
   width: 100%;
-  box-sizing: border-box;
 
   &:focus {
     outline: none;
@@ -77,13 +88,6 @@ const Select = styled.select`
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.border};
   background: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-  width: 100%;
-
-  &:focus {
-    outline: none;
-    box-shadow: ${({ theme }) => theme.neon};
-  }
 `;
 
 const TextArea = styled.textarea`
@@ -91,29 +95,43 @@ const TextArea = styled.textarea`
   border-radius: 8px;
   border: 1px solid ${({ theme }) => theme.border};
   background: ${({ theme }) => theme.body};
-  color: ${({ theme }) => theme.text};
-  width: 100%;
-  min-height: 96px;
+  min-height: 90px;
+`;
 
-  &:focus {
-    outline: none;
-    box-shadow: ${({ theme }) => theme.neon};
+const DateGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
   }
+`;
+
+const TicketInputGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+`;
+
+const Row = styled.div`
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 `;
 
 const Button = styled.button`
   padding: 10px 14px;
-  background: ${({ theme }) => theme.headerBg};
-  color: ${({ theme }) => theme.textOnHeader || "#fff"};
-  border: none;
   border-radius: 10px;
-  cursor: pointer;
+  border: none;
   font-weight: 600;
-  transition: 0.2s ease;
+  cursor: pointer;
+  background: ${({ theme }) => theme.headerBg};
+  color: #fff;
 
   &:hover {
-    transform: translateY(-2px);
     box-shadow: ${({ theme }) => theme.neon};
+    transform: translateY(-1px);
   }
 `;
 
@@ -121,89 +139,23 @@ const GhostBtn = styled(Button)`
   background: transparent;
   color: ${({ theme }) => theme.text};
   border: 1px solid ${({ theme }) => theme.border};
-
-  &:hover {
-    background: ${({ theme }) => theme.glass};
-  }
 `;
 
 const PreviewImg = styled.img`
   width: 100%;
-  height: 180px;
+  height: 160px;
   object-fit: cover;
   border-radius: 10px;
   border: 1px solid ${({ theme }) => theme.border};
-  box-shadow: 0 4px 12px ${({ theme }) => theme.shadow};
-  margin-bottom: 10px;
 `;
 
-const AddOtherBtn = styled.button`
-  background: transparent;
-  border: 1px dashed ${({ theme }) => theme.border};
-  color: ${({ theme }) => theme.text};
-  padding: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-
-  &:hover {
-    background: ${({ theme }) => theme.mainBg};
-  }
-`;
-
-/* ===== Ticket Price Styles ===== */
-
-const TicketGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-`;
-
-const TicketBadge = styled.div`
-  background: ${({ theme }) => theme.glass};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 10px;
-  padding: 6px 8px;
-  text-align: center;
-  box-shadow: 0 2px 6px ${({ theme }) => theme.shadow};
-
-  span {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    opacity: 0.65;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  strong {
-    font-size: 13px;
-    font-weight: 700;
-    margin-top: 2px;
-    display: block;
-  }
-`;
-
-const FreeBadge = styled.div`
-  margin-top: 10px;
-  display: inline-block;
-  background: rgba(5, 150, 105, 0.15);
-  color: #059669;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-`;
-
-/* ================== ERROR TEXT ================== */
 const ErrorText = styled.span`
-  color: red;
   font-size: 12px;
-  margin-top: 2px;
-  display: block;
+  color: red;
 `;
 
 /* ================== COMPONENT ================== */
+
 export default function QuickAction() {
   const theme = useTheme();
   const {
@@ -219,73 +171,59 @@ export default function QuickAction() {
   const [form, setForm] = useState(eventTemplate);
   const [editId, setEditId] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
-  const [showCalendar, setShowCalendar] = useState(false);
   const [showOtherTicket, setShowOtherTicket] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
-  const isSingleDay = event.startDate === event.endDate || !event.endDate;
+  const [errors, setErrors] = useState({});
+
+  const isSingleDay = form.startDate === form.endDate || !form.endDate;
 
   /* ================== HELPERS ================== */
+
   const resetForm = () => {
-    setForm({
-      ...eventTemplate,
-      tickets: { ...eventTemplate.tickets },
-      attendees: [...(eventTemplate.attendees || [])],
-    });
-    setImagePreview("");
+    setForm(eventTemplate);
     setEditId(null);
+    setImagePreview("");
+    setErrors({});
     setShowOtherTicket(false);
-    setValidationErrors({});
   };
 
   const validateForm = () => {
-    const errors = {};
-    if (!form.startDate) errors.startDate = "Start date is required";
-    if (!form.startTime) errors.startTime = "Start time is required";
-    if (!form.location.trim()) errors.location = "Location is required";
+    const e = {};
+    if (!form.title.trim()) e.title = "Title is required";
+    if (!form.startDate) e.startDate = "Start date required";
+    if (!form.startTime) e.startTime = "Start time required";
+    if (!form.location.trim()) e.location = "Location required";
+
     if (!form.freeEvent) {
-      const hasPrice = Object.values(form.tickets).some((p) => p.trim());
-      if (!hasPrice) errors.tickets = "At least one ticket price required";
+      const hasPrice = Object.values(form.tickets).some(Boolean);
+      if (!hasPrice) e.tickets = "Add at least one ticket price";
     }
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  /* ================== INPUT HANDLERS ================== */
+  /* ================== HANDLERS ================== */
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
   };
 
   const handleTicketChange = (tier, value) => {
-    setForm((prev) => ({
-      ...prev,
-      tickets: { ...prev.tickets, [tier]: value },
+    setForm((p) => ({
+      ...p,
+      tickets: { ...p.tickets, [tier]: value },
     }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const previewURL = URL.createObjectURL(file);
-    setImagePreview(previewURL);
-    setForm((prev) => ({ ...prev, image: previewURL, imageFile: file }));
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+    setForm((p) => ({ ...p, image: url, imageFile: file }));
   };
 
-  const toggleFreeEvent = (checked) => {
-    setForm((prev) => ({
-      ...prev,
-      freeEvent: checked,
-      tickets: checked
-        ? { vvip: "", vip: "", regular: "", other: "" }
-        : prev.tickets,
-    }));
-  };
-
-  /* ================== ACTION HANDLERS ================== */
   const handleSave = () => {
     if (!validateForm()) return;
 
@@ -296,192 +234,128 @@ export default function QuickAction() {
       addEvent(form);
       triggerNotification("Event created");
     }
-
     resetForm();
   };
 
   const handleEdit = (id) => {
-    const event = events.find((e) => e.id === id);
-    if (!event) return;
-
-    setForm(event);
-    setImagePreview(event.image || "");
+    const ev = events.find((e) => e.id === id);
+    if (!ev) return;
+    setForm(ev);
     setEditId(id);
+    setImagePreview(ev.image || "");
   };
 
-  const handleUpload = (id) => {
-    if (!id) return;
-    uploadEvent(id);
-    triggerNotification("Event uploaded");
-  };
+  /* ================== RENDER ================== */
 
-  const handleDelete = (id) => {
-    deleteEvent(id);
-    triggerNotification("Event moved to trash");
-    if (id === editId) resetForm();
-  };
-
-  useEffect(() => {
-    if (form.tickets.other) setShowOtherTicket(true);
-  }, [form.tickets.other]);
-
-  /* ================== RENDER HELPERS ================== */
-  const renderTicketPrices = (event) => {
-    if (event.freeEvent) return <FreeBadge>Free Event</FreeBadge>;
-
-    const tickets =
-      event.tickets &&
-      Object.entries(event.tickets).filter(([, price]) => price);
-
-    if (!tickets || tickets.length === 0) return null;
-
-    return (
-      <TicketGrid>
-        {tickets.map(([type, price]) => (
-          <TicketBadge key={type}>
-            <span>{type}</span>
-            <strong>{price}</strong>
-          </TicketBadge>
-        ))}
-      </TicketGrid>
-    );
-  };
-
-  /* ================== JSX ================== */
   return (
     <Wrapper>
       <Grid>
-        {/* LEFT: FORM */}
+        {/* CREATE / EDIT */}
         <Card>
           <h3>{editId ? "Edit Event" : "Create Event"}</h3>
 
-          <Label>Title</Label>
-          <Input name="title" value={form.title} onChange={handleChange} />
-          {validationErrors.title && (
-            <ErrorText>{validationErrors.title}</ErrorText>
-          )}
+          <FormBody>
+            <Label>Title</Label>
+            <Input name="title" value={form.title} onChange={handleChange} />
+            {errors.title && <ErrorText>{errors.title}</ErrorText>}
 
-          <Label>Category</Label>
-          <Select name="category" value={form.category} onChange={handleChange}>
-            {[
-              "Music",
-              "Tech",
-              "Sports",
-              "Food",
-              "Business",
-              "Community",
-              "Other",
-            ].map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </Select>
-          <Row>
-            <Label>Start Date</Label>
-            <Input
-              type="date"
-              name="startDate"
-              value={form.startDate}
+            <Label>Category</Label>
+            <Select
+              name="category"
+              value={form.category}
               onChange={handleChange}
-            />
-
-            <Label>Start Time</Label>
-            <Input
-              type="time"
-              name="startTime"
-              value={form.startTime}
-              onChange={handleChange}
-            />
-
-            <Label>End Date (optional)</Label>
-            <Input
-              type="date"
-              name="endDate"
-              value={form.endDate}
-              onChange={handleChange}
-            />
-
-            <Label>End Time</Label>
-            <Input
-              type="time"
-              name="endTime"
-              value={form.endTime}
-              onChange={handleChange}
-            />
-          </Row>
-
-          {validationErrors.date && (
-            <ErrorText>{validationErrors.date}</ErrorText>
-          )}
-
-          {showCalendar && (
-            <Calendar
-              onChange={(value) => {
-                setForm((prev) => ({
-                  ...prev,
-                  date: new Date(value).toISOString().split("T")[0],
-                }));
-                setShowCalendar(false);
-              }}
-            />
-          )}
-
-          <Label>Location</Label>
-          <Input
-            name="location"
-            value={form.location}
-            onChange={handleChange}
-          />
-          {validationErrors.location && (
-            <ErrorText>{validationErrors.location}</ErrorText>
-          )}
-
-          <Label>Image</Label>
-          <Input type="file" accept="image/*" onChange={handleFileChange} />
-          {imagePreview && <PreviewImg src={imagePreview} />}
-
-          <Label>Description</Label>
-          <TextArea
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-          />
-
-          <label>
-            <input
-              type="checkbox"
-              checked={form.freeEvent}
-              onChange={(e) => toggleFreeEvent(e.target.checked)}
-            />
-            Free Event
-          </label>
-
-          {!form.freeEvent && (
-            <>
-              <Label>Ticket Prices</Label>
-              {["vvip", "vip", "regular"].map((tier) => (
-                <Input
-                  key={tier}
-                  placeholder={`${tier.toUpperCase()} price`}
-                  value={form.tickets[tier]}
-                  onChange={(e) => handleTicketChange(tier, e.target.value)}
-                />
-              ))}
-              {showOtherTicket ? (
-                <Input
-                  placeholder="Other ticket"
-                  value={form.tickets.other}
-                  onChange={(e) => handleTicketChange("other", e.target.value)}
-                />
-              ) : (
-                <AddOtherBtn onClick={() => setShowOtherTicket(true)}>
-                  Add other ticket
-                </AddOtherBtn>
+            >
+              {["Music", "Tech", "Sports", "Food", "Business", "Community"].map(
+                (c) => (
+                  <option key={c}>{c}</option>
+                )
               )}
-              {validationErrors.tickets && (
-                <ErrorText>{validationErrors.tickets}</ErrorText>
-              )}
-            </>
-          )}
+            </Select>
+
+            <DateGrid>
+              <div>
+                <Label>Start Date</Label>
+                <Input
+                  type="date"
+                  name="startDate"
+                  value={form.startDate}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label>Start Time</Label>
+                <Input
+                  type="time"
+                  name="startTime"
+                  value={form.startTime}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label>End Date</Label>
+                <Input
+                  type="date"
+                  name="endDate"
+                  value={form.endDate}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label>End Time</Label>
+                <Input
+                  type="time"
+                  name="endTime"
+                  value={form.endTime}
+                  onChange={handleChange}
+                />
+              </div>
+            </DateGrid>
+
+            <Label>Location</Label>
+            <Input
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+            />
+
+            <Label>Image</Label>
+            <Input type="file" onChange={handleFileChange} />
+            {imagePreview && <PreviewImg src={imagePreview} />}
+
+            <Label>Description</Label>
+            <TextArea
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+            />
+
+            <label>
+              <input
+                type="checkbox"
+                checked={form.freeEvent}
+                onChange={(e) => handleChange(e)}
+                name="freeEvent"
+              />{" "}
+              Free Event
+            </label>
+
+            {!form.freeEvent && (
+              <>
+                <Label>Ticket Prices</Label>
+                <TicketInputGrid>
+                  {["vvip", "vip", "regular"].map((t) => (
+                    <Input
+                      key={t}
+                      placeholder={`${t.toUpperCase()} price`}
+                      value={form.tickets[t]}
+                      onChange={(e) => handleTicketChange(t, e.target.value)}
+                    />
+                  ))}
+                </TicketInputGrid>
+                {errors.tickets && <ErrorText>{errors.tickets}</ErrorText>}
+              </>
+            )}
+          </FormBody>
 
           <Row>
             <Button onClick={handleSave}>{editId ? "Update" : "Create"}</Button>
@@ -489,26 +363,26 @@ export default function QuickAction() {
           </Row>
         </Card>
 
-        {/* RIGHT: DRAFTS */}
+        {/* DRAFTS */}
         <Card>
-          <h4>Drafts</h4>
-          {pendingEvents.length === 0 && (
-            <p style={{ opacity: 0.6 }}>No drafts yet</p>
-          )}
-
-          {pendingEvents.filter(Boolean).map((e) => (
-            <div key={e.id}>
-              {e.image && <PreviewImg src={e.image} />}
-              <strong>{e.title}</strong>
-              {e.category} | {e.startDate} {e.startTime && `| ${e.startTime}`}
-              {renderTicketPrices(e)}
-              <Row>
-                <Button onClick={() => handleEdit(e.id)}>Edit</Button>
-                <Button onClick={() => handleUpload(e.id)}>Upload</Button>
-                <GhostBtn onClick={() => handleDelete(e.id)}>Delete</GhostBtn>
-              </Row>
-            </div>
-          ))}
+          <h4>Draft Events</h4>
+          <DraftList>
+            {pendingEvents.length === 0 && <p>No drafts yet</p>}
+            {pendingEvents.map((e) => (
+              <DraftItem key={e.id}>
+                {e.image && <PreviewImg src={e.image} />}
+                <strong>{e.title}</strong>
+                <small>
+                  {e.category} • {e.startDate}
+                </small>
+                <Row>
+                  <Button onClick={() => handleEdit(e.id)}>Edit</Button>
+                  <Button onClick={() => uploadEvent(e.id)}>Upload</Button>
+                  <GhostBtn onClick={() => deleteEvent(e.id)}>Delete</GhostBtn>
+                </Row>
+              </DraftItem>
+            ))}
+          </DraftList>
         </Card>
       </Grid>
     </Wrapper>

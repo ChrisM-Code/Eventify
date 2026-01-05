@@ -3,12 +3,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useEventStore } from "../Store/EventStoreContext";
 import TicketPrice from "../BtnsComponent/TicketPrice";
 
-/* ================== STYLES ================== */
+/* ================== PAGE ================== */
 
 const PageWrapper = styled.div`
   padding: 25px;
   color: ${({ theme }) => theme.text};
 `;
+
+/* ================== HEADER ================== */
 
 const FilterHeader = styled.div`
   display: flex;
@@ -16,42 +18,44 @@ const FilterHeader = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 15px;
-  padding: 12px 18px;
+  padding: 14px 18px;
   background: ${({ theme }) => theme.glass};
   border-radius: 14px;
-  backdrop-filter: blur(10px);
   margin-bottom: 25px;
 `;
 
 const SearchInput = styled.input`
   flex: 1;
-  padding: 12px;
+  min-width: 220px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid ${({ theme }) => theme.border};
-  background: ${({ theme }) => theme.glass};
+  background: ${({ theme }) => theme.mainBg};
   color: ${({ theme }) => theme.text};
 
   &:focus {
-    border-color: ${({ theme }) => theme.headerBg};
     outline: none;
+    border-color: ${({ theme }) => theme.headerBg};
   }
 `;
 
 const Tabs = styled.div`
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
+  gap: 10px;
 `;
 
 const Tab = styled.button`
-  padding: 10px 22px;
+  padding: 10px 20px;
   border-radius: 10px;
   border: none;
   cursor: pointer;
+  font-weight: 600;
   background: ${({ active, theme }) =>
     active ? theme.headerBg : theme.mainBg};
-  color: ${({ active }) => (active ? "white" : "inherit")};
+  color: ${({ active }) => (active ? "#fff" : "inherit")};
 `;
+
+/* ================== GRID ================== */
 
 const SectionTitle = styled.h2`
   margin-bottom: 15px;
@@ -59,39 +63,30 @@ const SectionTitle = styled.h2`
 
 const EventGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 25px;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
-const Card = styled.div`
+/* ================== CARD ================== */
+
+const Card = styled.article`
   background: ${({ theme }) => theme.mainBg};
-  padding: 22px;
+  padding: 5px;
   border-radius: 18px;
   border: 1px solid ${({ theme }) => theme.border};
   box-shadow: 0 4px 16px ${({ theme }) => theme.shadow};
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   position: relative;
-  transition: 0.25s ease;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
-
-  ${({ status }) =>
-    status === "past" &&
-    `
-      opacity: 0.55;
-      &::after {
-        content: "PAST EVENT";
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        background: #374151;
-        color: white;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-      }
-    `}
 
   ${({ status }) =>
     status === "cancelled" &&
@@ -103,10 +98,29 @@ const Card = styled.div`
         top: 12px;
         right: 12px;
         background: #b91c1c;
-        color: white;
+        color: #fff;
         padding: 4px 10px;
         border-radius: 6px;
-        font-size: 12px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+    `}
+
+  ${({ status }) =>
+    status === "past" &&
+    `
+      opacity: 0.55;
+      &::after {
+        content: "PAST EVENT";
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: #374151;
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
       }
     `}
 `;
@@ -116,26 +130,38 @@ const Image = styled.img`
   height: 180px;
   object-fit: cover;
   border-radius: 14px;
-  margin-bottom: 12px;
+`;
+
+const Meta = styled.div`
+  font-size: 13px;
+  opacity: 0.7;
+`;
+
+const Description = styled.p`
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.85;
 `;
 
 const ViewBtn = styled.button`
-  margin-top: 12px;
-  padding: 8px 12px;
+  margin-top: auto;
+  padding: 10px 14px;
+  border-radius: 10px;
   border: none;
-  border-radius: 8px;
+  cursor: pointer;
   background: ${({ theme }) => theme.headerBg};
   color: white;
-  cursor: pointer;
+  font-weight: 600;
 `;
 
-/* ===== MODAL ===== */
+/* ================== MODAL ================== */
 
 const Backdrop = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.48);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 999;
 `;
 
@@ -143,23 +169,79 @@ const Modal = styled.div`
   position: fixed;
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
-  width: min(600px, 90%);
-  max-height: 85vh;
-  overflow-y: auto;
-  background: ${({ theme }) => theme.mainBg};
-  border-radius: 18px;
-  padding: 24px;
+  width: min(680px, 95%);
+  max-height: 90vh;
+
+  background: ${({ theme }) => theme.glass};
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  border-radius: 22px;
+  border: 1px solid ${({ theme }) => theme.border};
+
+  box-shadow: 0 24px 60px ${({ theme }) => theme.shadow},
+    ${({ theme }) => theme.neon};
+
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  animation: modalIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -46%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+`;
+
+const ModalHeader = styled.div`
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const ModalBody = styled.div`
+  padding: 22px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: ${({ theme }) => theme.text};
+
+  line-height: 1.6;
 `;
 
 const CloseBtn = styled.button`
   position: absolute;
-  top: 14px;
-  right: 14px;
-  background: none;
+  top: 10px;
+  right: 10px;
   border: none;
-  font-size: 18px;
+  background: ${({ theme }) => theme.glass};
+  color: ${({ theme }) => theme.text};
+
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   cursor: pointer;
+
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  z-index: 10;
+  transition: 0.2s ease;
+
+  &:hover {
+    background: ${({ theme }) => theme.headerBg};
+    color: #fff;
+  }
 `;
 
 /* ================== COMPONENT ================== */
@@ -170,19 +252,30 @@ export default function FilterPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("confirmed");
   const [viewingEvent, setViewingEvent] = useState(null);
-  const [page, setPage] = useState(1);
 
-  const perPage = 6;
+  /* ===== HELPERS ===== */
 
-  /* ===== DERIVED DATA ===== */
+  const formatEventDateTime = (event) => {
+    if (!event?.startDate) return "Date not set";
+
+    if (!event.endDate || event.startDate === event.endDate) {
+      return `${event.startDate} • ${event.startTime || ""}${
+        event.endTime ? ` – ${event.endTime}` : ""
+      }`;
+    }
+
+    return `${event.startDate} → ${event.endDate}`;
+  };
+
+  /* ===== FILTERING ===== */
 
   const filteredEvents = useMemo(() => {
     const term = search.toLowerCase();
     return events.filter(
       (e) =>
-        e.title.toLowerCase().includes(term) ||
-        e.location.toLowerCase().includes(term) ||
-        e.description.toLowerCase().includes(term)
+        e.title?.toLowerCase().includes(term) ||
+        e.location?.toLowerCase().includes(term) ||
+        e.description?.toLowerCase().includes(term)
     );
   }, [events, search]);
 
@@ -191,28 +284,12 @@ export default function FilterPage() {
     return filteredEvents.filter((e) => e.status === filter);
   }, [filteredEvents, filter]);
 
-  const paginated = tabEvents.slice((page - 1) * perPage, page * perPage);
-
-  /* ===== EFFECTS ===== */
+  /* ===== EFFECT ===== */
 
   useEffect(() => {
     document.body.style.overflow = viewingEvent ? "hidden" : "auto";
     return () => (document.body.style.overflow = "auto");
   }, [viewingEvent]);
-
-  const formatEventDateTime = (event) => {
-    if (!event.startDate) return "Date not set";
-
-    const sameDay = !event.endDate || event.startDate === event.endDate;
-
-    if (sameDay) {
-      return `${event.startDate} | ${event.startTime || ""} – ${
-        event.endTime || ""
-      }`;
-    }
-
-    return `${event.startDate} → ${event.endDate}`;
-  };
 
   /* ===== RENDER ===== */
 
@@ -230,10 +307,7 @@ export default function FilterPage() {
             <Tab
               key={tab}
               active={filter === tab}
-              onClick={() => {
-                setFilter(tab);
-                setPage(1);
-              }}
+              onClick={() => setFilter(tab)}
             >
               {tab.toUpperCase()}
             </Tab>
@@ -244,29 +318,19 @@ export default function FilterPage() {
       <SectionTitle>{filter.toUpperCase()} EVENTS</SectionTitle>
 
       <EventGrid>
-        {paginated.length === 0 && <p>No events found.</p>}
+        {tabEvents.length === 0 && <p>No events found.</p>}
 
-        {paginated.map((event) => (
+        {tabEvents.map((event) => (
           <Card key={event.id} status={event.status}>
             {event.image && <Image src={event.image} alt={event.title} />}
             <h3>{event.title}</h3>
-            <p style={{ opacity: 0.7 }}>
-              {event.startDate === event.endDate || !event.endDate ? (
-                <>
-                  {event.startDate} | {event.startTime} | {event.endTime}
-                </>
-              ) : (
-                <>
-                  {event.startDate} → {event.endDate}
-                </>
-              )}
-            </p>
-            <p>{event.location}</p>
-            <p>{event.description}</p>
-
+            <Meta>{formatEventDateTime(event)}</Meta>
+            <strong>{event.location}</strong>
+            <Description>{event.description}</Description>
             <TicketPrice event={event} />
-
-            <ViewBtn onClick={() => setViewingEvent(event)}>View</ViewBtn>
+            <ViewBtn onClick={() => setViewingEvent(event)}>
+              View Details
+            </ViewBtn>
           </Card>
         ))}
       </EventGrid>
@@ -276,25 +340,25 @@ export default function FilterPage() {
           <Backdrop onClick={() => setViewingEvent(null)} />
 
           <Modal>
-            <CloseBtn onClick={() => setViewingEvent(null)}>✕</CloseBtn>
+            <ModalHeader>
+              <CloseBtn onClick={() => setViewingEvent(null)}>✕</CloseBtn>
+            </ModalHeader>
 
-            {viewingEvent.image && (
-              <Image src={viewingEvent.image} alt={viewingEvent.title} />
-            )}
+            {/* ===== Modal Body ===== */}
+            <ModalBody>
+              {viewingEvent.image && (
+                <Image src={viewingEvent.image} alt={viewingEvent.title} />
+              )}
+              <h3>{viewingEvent.title}</h3>
+              <Meta>{formatEventDateTime(viewingEvent)}</Meta>
+              <strong>{viewingEvent.location}</strong>
+              <p>{viewingEvent.description}</p>
 
-            <h2>{viewingEvent.title}</h2>
-
-            <p style={{ opacity: 0.7 }}>{formatEventDateTime(viewingEvent)}</p>
-
-            <p>{viewingEvent.location}</p>
-            <p>{viewingEvent.description}</p>
-
-            <TicketPrice event={viewingEvent} />
+              <TicketPrice event={viewingEvent} />
+            </ModalBody>
           </Modal>
         </>
       )}
     </PageWrapper>
   );
 }
-
-//Past vs upcoming analytics//
